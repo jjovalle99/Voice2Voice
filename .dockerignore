@@ -1,0 +1,29 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Other files and directories
+*.env
+to_ignore/
+*.md
+Makefile
+.dockerignore
+.python-version
+
+# Other-generated files
+.mypy_cache/
+.ruff_cache/
+
+# macOS generated files
+.DS_Store
+
+# Version control
+.git
+.gitignore    

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Voice-to-Voice Streaming Test</title>
+</head>
+<body>
+    <h1>Voice-to-Voice Streaming Test</h1>
+    <button id="startButton">Start Recording</button>
+    <button id="stopButton" disabled>Stop Recording</button>
+    <div id="statusDiv">Click "Start Recording" to begin.</div>
+    <script>
+        let startButton = document.getElementById('startButton');
+        let stopButton = document.getElementById('stopButton');
+        let statusDiv = document.getElementById('statusDiv');
+
+        let mediaRecorder;
+        let recordedChunks = [];
+        let audioBlob;
+        let websocket;
+        let audioContext;
+        let sourceNode;
+        let audioQueue = [];
+        let isPlaying = false;
+
+        // Initialize WebSocket connection when the page loads
+        function initializeWebSocket() {
+            websocket = new WebSocket(`ws://${location.host}/voice_stream`);
+            websocket.binaryType = "arraybuffer";
+
+            websocket.onopen = () => {
+                statusDiv.textContent = "WebSocket connection opened.";
+            };
+
+            websocket.onmessage = (event) => {
+                // Receive audio data from the server and process it
+                let arrayBuffer = event.data;
+                console.log(arrayBuffer.byteLength);
+
+                // Check if arrayBuffer has content
+                if (arrayBuffer.byteLength > 0) {
+                    // Decode and play the audio data
+                    audioQueue.push(arrayBuffer);
+                    if (!isPlaying) {
+                        isPlaying = true;
+                        processAudioQueue();
+                    }
+                } else {
+                    console.warn("Received empty audio chunk, ignoring it.");
+                }
+            };
+
+            websocket.onerror = (error) => {
+                console.error("WebSocket error:", error);
+                statusDiv.textContent = "WebSocket error occurred.";
+            };
+
+            websocket.onclose = () => {
+                statusDiv.textContent = "WebSocket connection closed.";
+                // Optionally, try to reconnect
+                setTimeout(() => {
+                    statusDiv.textContent = "Reconnecting WebSocket...";
+                    initializeWebSocket();
+                }, 1000); // Reconnect after 1 second
+            };
+        }
+
+        // Call the function to initialize the WebSocket when the page loads
+        initializeWebSocket();
+
+        startButton.onclick = async () => {
+            startButton.disabled = true;
+            stopButton.disabled = false;
+            statusDiv.textContent = "Initializing...";
+
+            // Get microphone access
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                statusDiv.textContent = "Microphone access granted.";
+
+                // Create MediaRecorder with appropriate mimeType
+                const mimeType = 'audio/webm;codecs=opus';
+                if (!MediaRecorder.isTypeSupported(mimeType)) {
+                    throw new Error(`${mimeType} is not supported on your browser.`);
+                }
+
+                mediaRecorder = new MediaRecorder(stream, { mimeType: mimeType });
+
+                // Initialize recorded chunks
+                recordedChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+
+                mediaRecorder.onstop = () => {
+                    // Combine the recorded chunks into a single Blob
+                    audioBlob = new Blob(recordedChunks, { type: mimeType });
+
+                    statusDiv.textContent = "Recording stopped. Sending audio to server...";
+
+                    // Send the audio data to server via WebSocket
+                    sendAudioData(audioBlob);
+                };
+
+                // Start recording
+                mediaRecorder.start();
+                statusDiv.textContent = "Recording...";
+            } catch (err) {
+                console.error("Error accessing microphone:", err);
+                statusDiv.textContent = "Error accessing microphone: " + err;
+                startButton.disabled = false;
+                stopButton.disabled = true;
+            }
+        };
+
+        stopButton.onclick = () => {
+            startButton.disabled = false;
+            stopButton.disabled = true;
+
+            // Stop recording
+            mediaRecorder.stop();
+            statusDiv.textContent = "Stopping recording...";
+        };
+
+        function sendAudioData(audioBlob) {
+            if (websocket.readyState === WebSocket.OPEN) {
+                statusDiv.textContent = "Sending audio data to server...";
+
+                // Send the audio data to the server
+                audioBlob.arrayBuffer().then((arrayBuffer) => {
+                    websocket.send(arrayBuffer);
+                    statusDiv.textContent = "Audio data sent to server. Waiting for response...";
+
+                    // Initialize AudioContext if not already initialized
+                    if (!audioContext) {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    isPlaying = false;
+                });
+            } else {
+                statusDiv.textContent = "WebSocket is not open. Unable to send audio data.";
+                console.error("WebSocket is not open. State:", websocket.readyState);
+            }
+        }
+
+        function processAudioQueue() {
+            if (audioQueue.length > 0) {
+                let arrayBuffer = audioQueue.shift();
+                audioContext.decodeAudioData(arrayBuffer).then((audioBuffer) => {
+                    // Create a buffer source and connect it to the destination
+                    let source = audioContext.createBufferSource();
+                    source.buffer = audioBuffer;
+                    source.connect(audioContext.destination);
+
+                    source.onended = () => {
+                        processAudioQueue();
+                    };
+
+                    source.start(0);
+                }).catch((error) => {
+                    console.error("Error decoding audio data:", error);
+                    // Continue processing the queue even if there's an error
+                    processAudioQueue();
+                });
+            } else {
+                isPlaying = false;
+            }
+        }
+
+        // Ensure the WebSocket is closed when the page is unloaded
+        window.addEventListener('beforeunload', () => {
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
+                websocket.close();
+            }
+        });
+    </script>
+</body>
+</html>

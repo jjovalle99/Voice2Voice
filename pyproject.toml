@@ -1,0 +1,35 @@
+[project]
+name = "app"
+version = "0.1.0"
+description = "This is a demo for a Voice-to-Voice FastAPI app."
+readme = "README.md"
+requires-python = ">=3.12.8"
+dependencies = [
+    "aiohttp[speedups]>=3.11.11",
+    "fastapi[standard]>=0.115.6",
+    "loguru>=0.7.3",
+    "openai>=1.59.8",
+    "psycopg[binary,pool]>=3.2.3",
+    "pydantic-ai-slim[groq]>=0.0.19",
+    "pydantic-settings>=2.7.1",
+    "websockets>=14.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+
+[tool.ruff] 
+line-length=80
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+    "ipywidgets>=8.1.5"
+]
+type = [
+    "mypy>=1.14.1",
+]
