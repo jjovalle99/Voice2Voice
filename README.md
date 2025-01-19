@@ -69,6 +69,7 @@ There are two ways to run the application: using Docker or running it locally in
    ```shell
    make docker_build
    ```
+   **Note**: The docker image is about 350MB in size.
 
 4. **Run the Docker container:**
 
