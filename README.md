@@ -77,7 +77,9 @@ There are two ways to run the application: using Docker or running it locally in
     make docker_run
     ```
     **Note:** This will work only if you have the required credentials in the `.env` file.
+    
     **Note:** If you are using a local PostgreSQL database (`localhost`) you need to change the `DB_HOST` value in the `.env` file to `host.docker.internal`.
+    
     **Note:** You can inspect the running container by running `make docker_logs`.
 
 5. **Access the application and database.** Visit the default app path at [http://localhost:8000](http://localhost:8000). If everything is working correctly, you'll see the UI.
