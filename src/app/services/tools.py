@@ -11,6 +11,16 @@ type AvailableCities = Literal["Paris", "Madrid", "London"]
 async def get_weather(
     ctx: RunContext[Dependencies], city: AvailableCities
 ) -> str:
+    """
+    Fetch the weather for a given city. Only Paris, Madrid and London are available.
+
+    Args:
+        ctx: The context of the current run.
+        city: The city to get the weather for.
+
+    Returns:
+        A string with the weather information.
+    """
     logger.info(f"Getting weather for {city}")
     url = "http://api.weatherstack.com/current"
     params = {
