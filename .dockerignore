@@ -26,4 +26,5 @@ Makefile
 
 # Version control
 .git
-.gitignore    
+.gitignore
+LICENSE
