@@ -12,6 +12,7 @@ wheels/
 # Other files and directories
 *.env
 to_ignore/
+assets/
 *.md
 Makefile
 .dockerignore

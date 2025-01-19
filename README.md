@@ -21,6 +21,8 @@ Finally, the application uses a PostgreSQL database to store the chat history.
 
 **Note**: The application uses a very basic UI to test the backend. The UI is a simple HTML file that uses JavaScript to communicate with the backend. Is not intended to be used in production.
 
+![alt text](assets/image.png)
+
 ## Stack
 * Programming Language: [Python 3.12.8](https://www.python.org/)
 * LLM Framework: [PydanticAI](https://ai.pydantic.dev/) & [OpenAI](https://platform.openai.com/docs/api-reference/introduction)
