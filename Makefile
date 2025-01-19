@@ -1,5 +1,6 @@
 .PHONY: clean-pycache clean-ruff-cache clean-mypy-cache clean-all \
-        lint format imports mypy pretty all dev prod
+        lint format imports mypy pretty all dev prod docker_build docker_run \
+		docker_logs docker_stop
 
 # ------------------------------------------------------------------------------
 # Cleaning Targets
@@ -64,3 +65,19 @@ prod:
 	uv run uvicorn server:app \
 		--host 0.0.0.0 \
 		--port 8000
+
+# ------------------------------------------------------------------------------
+# Docker
+# ------------------------------------------------------------------------------
+
+docker_build:
+	docker build -t v2v:latest .
+
+docker_run:
+	docker run --rm --name v2v_container --env-file .env -p 8000:8000 -d v2v:latest
+
+docker_logs:
+	docker logs -f --tail=100 v2v_container
+
+docker_stop:
+	docker stop v2v_container
