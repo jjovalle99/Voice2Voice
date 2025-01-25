@@ -19,7 +19,7 @@ This repository contains the backend for a voice-to-voice application. The appli
 
 Finally, the application uses a PostgreSQL database to store the chat history.
 
-**Note**: The application uses a very basic UI to test the backend. The UI is a simple HTML file that uses JavaScript to communicate with the backend. Is not intended to be used in production.
+**Note**: The application uses a very basic UI to test the backend (via `sample_ui.html`). It is not intended as a production-ready interface.
 
 ![alt text](assets/image.png)
 
@@ -50,7 +50,46 @@ OPENAI_API_KEY=fillme
 WEATHERSTACK_API_KEY=fillme
 ```
 
-## Installation
+## Project Setup with uv
+If you wish to recreate this environment from scratch using uv, follow the steps below. You can of course adapt them for other environments (Poetry, Conda, etc.).
+
+1. **Initialize the project**:
+```shell
+uv init --python 3.12.8 --build-backend hatch --name app Voice2Voice
+cd Voice2Voice/
+```
+
+This command creates an empty Python 3.12.8 project named app in a new folder called Voice2Voice. Inside this folder, your modules will live under src/app by default.
+
+2. **Add the main dependencies**:
+```shell
+uv add "fastapi[standard]" \
+    websockets \
+    pydantic-settings \
+    pydantic-ai \
+    openai \
+    "aiohttp[speedups]"
+```
+
+The above command installs the core packages used in this application.
+
+3. **(Optional) Development dependencies**:
+```shell
+uv add ipykernel ipywidgets --group dev
+```
+
+These development dependencies let you run the code in VSCode notebooks or traditional Jupyter Notebooks.
+
+4. **Synchronize and lock dependencies**:
+```shell
+uv sync --all-groups
+```
+
+This ensures that all dependencies (both main and development) are installed and locked.
+
+**Note**: Be sure to populate your .env file with valid API keys and database credentials before running the application.
+
+## Installation and Usage
 
 There are two ways to run the application: using Docker or running it locally in the shell.
 
